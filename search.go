@@ -243,17 +243,28 @@ func invert(a, b []field.Element) {
 // edwardsFromMontgomeryBytesWithOffset creates one of two Edwards25519 points
 // from a Montgomery u-coordinate bytes and adds B*8*offset to it.
 func edwardsFromMontgomeryBytesWithOffset(publicKey []byte, offset *big.Int) (*edwards25519.Point, error) {
-	pm, err := new(point).setBytes(publicKey)
+	u, err := new(field.Element).SetBytes(publicKey)
 	if err != nil {
 		return nil, err
 	}
 
-	pe := edwardsFromMontgomery(pm)
+	// y = (u - 1) / (u + 1)
+	var y, t field.Element
+
+	t.Add(u, _1)
+	t.Invert(&t)
+	y.Subtract(u, _1)
+	y.Multiply(&y, &t)
+
+	p, err := new(edwards25519.Point).SetBytes(y.Bytes())
+	if err != nil {
+		return nil, err
+	}
 	po := new(edwards25519.Point).ScalarBaseMult(scalarFromBigInt(offset))
 	po.MultByCofactor(po)
-	pe.Add(pe, po)
+	p.Add(p, po)
 
-	return pe, nil
+	return p, nil
 }
 
 func publicKeyFor(privateKey []byte) ([]byte, error) {
