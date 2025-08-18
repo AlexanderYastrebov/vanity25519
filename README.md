@@ -13,3 +13,8 @@ For comparison, brute-force key pair generator requires
 **743** field multiplications using [Twisted Edwards curve](https://github.com/FiloSottile/edwards25519/commit/2941d4c8cdacb392a1b39f85adafaeae65bb50f6) per candidate key.
 
 See [example_test.go](example_test.go) for usage.
+
+## Tools
+
+* [wireguard-vanity-key](https://github.com/AlexanderYastrebov/wireguard-vanity-key) — Fast WireGuard vanity key generator.
+* [age-vanity-keygen](https://github.com/AlexanderYastrebov/age-vanity-keygen) — Fast vanity age X25519 identity generator.
