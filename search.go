@@ -38,9 +38,9 @@ import (
 //
 // Performance: amortized (3.5M + 3A) per candidate key, where M is field multiplication and A is field addition.
 //
-// The search continues until the yield function returns false.
+// The search continues until context is done and returns number of generated candidates.
 // The function panics if batchSize is not positive and even, or if startPublicKey is not a valid curve25519 public key.
-func Search(ctx context.Context, startPublicKey []byte, startOffset *big.Int, batchSize int, accept func(candidatePublicKey []byte) bool, yield func(publicKey []byte, offset *big.Int)) {
+func Search(ctx context.Context, startPublicKey []byte, startOffset *big.Int, batchSize int, accept func(candidatePublicKey []byte) bool, yield func(publicKey []byte, offset *big.Int)) uint64 {
 	if startOffset == nil || startOffset.Sign() == -1 {
 		panic("startOffset must be non-negative")
 	}
@@ -69,7 +69,7 @@ func Search(ctx context.Context, startPublicKey []byte, startOffset *big.Int, ba
 	for i := uint64(batchSize / 2); ; i += uint64(batchSize + 1) {
 		select {
 		case <-ctx.Done():
-			return
+			return i - uint64(batchSize/2)
 		default:
 		}
 		// [addXBatch] inverts last element of dx
