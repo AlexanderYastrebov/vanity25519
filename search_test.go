@@ -184,26 +184,6 @@ func TestSearch(t *testing.T) {
 	})
 }
 
-// edwardsPointFromMontgomeryBytes returns corresponding [edwards25519.Point] or error.
-//
-// https://datatracker.ietf.org/doc/html/rfc7748#section-4.1
-func edwardsPointFromMontgomeryBytes(pkb []byte) (*edwards25519.Point, error) {
-	u, err := new(field.Element).SetBytes(pkb)
-	if err != nil {
-		return nil, err
-	}
-
-	// y = (u - 1) / (u + 1)
-	var y, n, d, r field.Element
-
-	n.Subtract(u, new(field.Element).One())
-	d.Add(u, new(field.Element).One())
-	r.Invert(&d)
-	y.Multiply(&n, &r)
-
-	return new(edwards25519.Point).SetBytes(y.Bytes())
-}
-
 func BenchmarkSearch(b *testing.B) {
 	testPrefix := HasPrefixBits(decodeBase64PrefixBits("GoodLuckWithThisPrefix"))
 

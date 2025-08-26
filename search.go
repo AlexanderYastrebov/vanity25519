@@ -48,11 +48,10 @@ func Search(ctx context.Context, startPublicKey []byte, startOffset *big.Int, ba
 		panic("batchSize must be positive and even")
 	}
 
-	pe, err := edwardsFromMontgomeryBytesWithOffset(startPublicKey, startOffset)
+	p, err := pointFromBytesWithOffset(startPublicKey, startOffset)
 	if err != nil {
 		panic(err)
 	}
-	p := montgomeryFromEdwards(pe)
 
 	offsets := makeOffsets(batchSize / 2)
 
@@ -108,11 +107,11 @@ func Add(startPrivateKey []byte, offset *big.Int) ([]byte, error) {
 		return nil, err
 	}
 
-	p, err := edwardsFromMontgomeryBytesWithOffset(startPublicKey, offset)
+	p, err := pointFromBytesWithOffset(startPublicKey, offset)
 	if err != nil {
 		return nil, err
 	}
-	vanityPublicKey := p.BytesMontgomery()
+	vanityPublicKey := p.x.Bytes()
 
 	s, err := new(field.Element).SetBytes(startPrivateKey)
 	if err != nil {
@@ -240,10 +239,26 @@ func invert(a, b []field.Element) {
 	a[0].Set(paInv)
 }
 
-// edwardsFromMontgomeryBytesWithOffset creates one of two Edwards25519 points
+// pointFromBytesWithOffset creates one of two points
 // from a Montgomery u-coordinate bytes and adds B*8*offset to it.
-func edwardsFromMontgomeryBytesWithOffset(publicKey []byte, offset *big.Int) (*edwards25519.Point, error) {
-	u, err := new(field.Element).SetBytes(publicKey)
+func pointFromBytesWithOffset(b []byte, offset *big.Int) (*point, error) {
+	p, err := edwardsPointFromMontgomeryBytes(b)
+	if err != nil {
+		return nil, err
+	}
+
+	po := new(edwards25519.Point).ScalarBaseMult(scalarFromBigInt(offset))
+	po.MultByCofactor(po)
+	p.Add(p, po)
+
+	return montgomeryFromEdwards(p), nil
+}
+
+// edwardsPointFromMontgomeryBytes returns corresponding [edwards25519.Point] or error.
+//
+// https://datatracker.ietf.org/doc/html/rfc7748#section-4.1
+func edwardsPointFromMontgomeryBytes(b []byte) (*edwards25519.Point, error) {
+	u, err := new(field.Element).SetBytes(b)
 	if err != nil {
 		return nil, err
 	}
@@ -256,15 +271,7 @@ func edwardsFromMontgomeryBytesWithOffset(publicKey []byte, offset *big.Int) (*e
 	y.Subtract(u, _1)
 	y.Multiply(&y, &t)
 
-	p, err := new(edwards25519.Point).SetBytes(y.Bytes())
-	if err != nil {
-		return nil, err
-	}
-	po := new(edwards25519.Point).ScalarBaseMult(scalarFromBigInt(offset))
-	po.MultByCofactor(po)
-	p.Add(p, po)
-
-	return p, nil
+	return new(edwards25519.Point).SetBytes(y.Bytes())
 }
 
 func publicKeyFor(privateKey []byte) ([]byte, error) {
