@@ -126,6 +126,16 @@ func TestDouble(t *testing.T) {
 	assertEqual(t, expectedMontgomery6.y.Bytes(), montgomery6.y.Bytes())
 }
 
+func TestDoubleAlias(t *testing.T) {
+	expectedMontgomery2 := montgomeryFromEdwards(edwards2)
+
+	montgomery2 := new(point).set(_B)
+	montgomery2.double(montgomery2)
+
+	assertEqual(t, expectedMontgomery2.x.Bytes(), montgomery2.x.Bytes())
+	assertEqual(t, expectedMontgomery2.y.Bytes(), montgomery2.y.Bytes())
+}
+
 func TestB8(t *testing.T) {
 	edwardsB8 := edwards25519.NewGeneratorPoint().ScalarBaseMult(scalar8)
 

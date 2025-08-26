@@ -167,6 +167,7 @@ func (m *point) addDxInv(p1, p2 *point, dxInv *field.Element) *point {
 func (m *point) double(p *point) *point {
 	var _2x, _3x, A2x, xSum field.Element
 	var t, tSquared, tCubed field.Element
+	var x3, y3 field.Element
 
 	_2x.Add(&p.x, &p.x)
 	_3x.Add(&_2x, &p.x)
@@ -184,14 +185,16 @@ func (m *point) double(p *point) *point {
 	tSquared.Square(&t)
 	tCubed.Multiply(&tSquared, &t)
 
-	m.x.Subtract(&tSquared, _A)
-	m.x.Subtract(&m.x, &_2x)
+	x3.Subtract(&tSquared, _A)
+	x3.Subtract(&x3, &_2x)
 
-	m.y.Add(&_3x, _A)
-	m.y.Multiply(&m.y, &t)
-	m.y.Subtract(&m.y, &tCubed)
-	m.y.Subtract(&m.y, &p.y)
+	y3.Add(&_3x, _A)
+	y3.Multiply(&y3, &t)
+	y3.Subtract(&y3, &tCubed)
+	y3.Subtract(&y3, &p.y)
 
+	m.x.Set(&x3)
+	m.y.Set(&y3)
 	return m
 }
 
