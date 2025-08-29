@@ -1,4 +1,4 @@
-# vanity25519
+# vanity25519 [![Go Reference](https://pkg.go.dev/badge/github.com/AlexanderYastrebov/vanity25519.svg)](https://pkg.go.dev/github.com/AlexanderYastrebov/vanity25519)
 
 This package implements an efficient [curve25519](https://datatracker.ietf.org/doc/html/rfc7748#section-4.1) vanity key generator.
 
