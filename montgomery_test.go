@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	"filippo.io/edwards25519"
-	"filippo.io/edwards25519/field"
+	"github.com/AlexanderYastrebov/vanity25519/field"
+	"github.com/AlexanderYastrebov/vanity25519/internal/assert"
 )
 
 var (
@@ -29,8 +30,8 @@ func TestMontgomeryFromEdwards(t *testing.T) {
 	b := montgomeryFromEdwards(g)
 	t.Log(b)
 
-	assertEqual(t, _B.x.Bytes(), b.x.Bytes())
-	assertEqual(t, _B.y.Bytes(), b.y.Bytes())
+	assert.Equal(t, _B.x.Bytes(), b.x.Bytes())
+	assert.Equal(t, _B.y.Bytes(), b.y.Bytes())
 }
 
 func TestEdwardsFromMontgomery(t *testing.T) {
@@ -39,7 +40,7 @@ func TestEdwardsFromMontgomery(t *testing.T) {
 	b := edwardsFromMontgomery(_B)
 	t.Log(b)
 
-	assertEqual(t, 1, g.Equal(b))
+	assert.Equal(t, 1, g.Equal(b))
 }
 
 func TestAddX(t *testing.T) {
@@ -53,7 +54,7 @@ func TestAddX(t *testing.T) {
 	addX(&x3, montgomery3, montgomery5)
 	t.Logf("Calculated x3: %x", x3.Bytes())
 
-	assertEqual(t, expectedU, x3.Bytes())
+	assert.Equal(t, expectedU, x3.Bytes())
 }
 
 func TestAddY(t *testing.T) {
@@ -67,7 +68,7 @@ func TestAddY(t *testing.T) {
 	addY(&y3, montgomery3, montgomery5)
 	t.Logf("Calculated y3: %x", y3.Bytes())
 
-	assertEqual(t, expectedV.Bytes(), y3.Bytes())
+	assert.Equal(t, expectedV.Bytes(), y3.Bytes())
 }
 
 func TestAdd(t *testing.T) {
@@ -79,8 +80,8 @@ func TestAdd(t *testing.T) {
 
 	t.Log(got)
 
-	assertEqual(t, expectedMontgomery8.x.Bytes(), got.x.Bytes())
-	assertEqual(t, expectedMontgomery8.y.Bytes(), got.y.Bytes())
+	assert.Equal(t, expectedMontgomery8.x.Bytes(), got.x.Bytes())
+	assert.Equal(t, expectedMontgomery8.y.Bytes(), got.y.Bytes())
 }
 
 func TestAddAlias(t *testing.T) {
@@ -93,8 +94,8 @@ func TestAddAlias(t *testing.T) {
 
 	t.Log(got)
 
-	assertEqual(t, expectedMontgomery8.x.Bytes(), got.x.Bytes())
-	assertEqual(t, expectedMontgomery8.y.Bytes(), got.y.Bytes())
+	assert.Equal(t, expectedMontgomery8.x.Bytes(), got.x.Bytes())
+	assert.Equal(t, expectedMontgomery8.y.Bytes(), got.y.Bytes())
 }
 
 func TestSub(t *testing.T) {
@@ -107,8 +108,8 @@ func TestSub(t *testing.T) {
 
 	t.Log(got)
 
-	assertEqual(t, expectedMontgomery2.x.Bytes(), got.x.Bytes())
-	assertEqual(t, expectedMontgomery2.y.Bytes(), got.y.Bytes())
+	assert.Equal(t, expectedMontgomery2.x.Bytes(), got.x.Bytes())
+	assert.Equal(t, expectedMontgomery2.y.Bytes(), got.y.Bytes())
 }
 
 func TestDouble(t *testing.T) {
@@ -122,8 +123,8 @@ func TestDouble(t *testing.T) {
 	t.Logf("Expected Montgomery 6: %s", expectedMontgomery6)
 	t.Logf("Calculated Montgomery 6: %s", montgomery6)
 
-	assertEqual(t, expectedMontgomery6.x.Bytes(), montgomery6.x.Bytes())
-	assertEqual(t, expectedMontgomery6.y.Bytes(), montgomery6.y.Bytes())
+	assert.Equal(t, expectedMontgomery6.x.Bytes(), montgomery6.x.Bytes())
+	assert.Equal(t, expectedMontgomery6.y.Bytes(), montgomery6.y.Bytes())
 }
 
 func TestDoubleAlias(t *testing.T) {
@@ -132,8 +133,8 @@ func TestDoubleAlias(t *testing.T) {
 	montgomery2 := new(point).set(_B)
 	montgomery2.double(montgomery2)
 
-	assertEqual(t, expectedMontgomery2.x.Bytes(), montgomery2.x.Bytes())
-	assertEqual(t, expectedMontgomery2.y.Bytes(), montgomery2.y.Bytes())
+	assert.Equal(t, expectedMontgomery2.x.Bytes(), montgomery2.x.Bytes())
+	assert.Equal(t, expectedMontgomery2.y.Bytes(), montgomery2.y.Bytes())
 }
 
 func TestB8(t *testing.T) {
@@ -144,8 +145,8 @@ func TestB8(t *testing.T) {
 	t.Logf("Expected Montgomery B8: %s", expectedMontgomeryB8)
 	t.Logf("Calculated Montgomery B8: %s", _B8)
 
-	assertEqual(t, expectedMontgomeryB8.x.Bytes(), _B8.x.Bytes())
-	assertEqual(t, expectedMontgomeryB8.y.Bytes(), _B8.y.Bytes())
+	assert.Equal(t, expectedMontgomeryB8.x.Bytes(), _B8.x.Bytes())
+	assert.Equal(t, expectedMontgomeryB8.y.Bytes(), _B8.y.Bytes())
 }
 
 func TestSetBytes(t *testing.T) {
@@ -155,7 +156,7 @@ func TestSetBytes(t *testing.T) {
 	}
 
 	p, err := new(point).setBytes(_B.x.Bytes())
-	assertNoError(t, err)
-	assertEqual(t, _B.x.Bytes(), p.x.Bytes())
-	assertEqual(t, expectedY.Bytes(), p.y.Bytes())
+	assert.NoError(t, err)
+	assert.Equal(t, _B.x.Bytes(), p.x.Bytes())
+	assert.Equal(t, expectedY.Bytes(), p.y.Bytes())
 }

@@ -1,0 +1,3 @@
+/build/
+/s2n-bignum/
+*.o

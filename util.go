@@ -6,7 +6,7 @@ import (
 	"math/big"
 
 	"filippo.io/edwards25519"
-	"filippo.io/edwards25519/field"
+	"github.com/AlexanderYastrebov/vanity25519/field"
 )
 
 // HasPrefixBits returns a function that checks if the input has the specified prefix bits.

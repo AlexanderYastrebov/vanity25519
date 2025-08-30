@@ -23,7 +23,7 @@ import (
 	"slices"
 
 	"filippo.io/edwards25519"
-	"filippo.io/edwards25519/field"
+	"github.com/AlexanderYastrebov/vanity25519/field"
 )
 
 // Search generates candidate curve25519 public keys by adding batches of incrementing offsets to the start public key.
@@ -77,8 +77,7 @@ func Search(ctx context.Context, startPublicKey []byte, startOffset *big.Int, ba
 		addXBatch(p, offsets, dx, x)
 
 		for j := range x {
-			copy(bm[:], x[j].Bytes()) // eliminate field.Element.Bytes() allocations
-			if accept(bm[:]) {
+			if accept(x[j].FillBytes(bm[:])) {
 				offset := new(big.Int).Add(startOffset, new(big.Int).SetUint64(i))
 				if j < batchSize/2 {
 					offset.Add(offset, big.NewInt(int64(j+1)))
@@ -89,8 +88,7 @@ func Search(ctx context.Context, startPublicKey []byte, startOffset *big.Int, ba
 			}
 		}
 
-		copy(bm[:], p.x.Bytes())
-		if accept(bm[:]) {
+		if accept(p.x.FillBytes(bm[:])) {
 			offset := new(big.Int).Add(startOffset, new(big.Int).SetUint64(i))
 			yield(slices.Clone(bm[:]), offset)
 		}

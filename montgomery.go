@@ -4,7 +4,8 @@ import (
 	"errors"
 
 	"filippo.io/edwards25519"
-	"filippo.io/edwards25519/field"
+	edfield "filippo.io/edwards25519/field"
+	"github.com/AlexanderYastrebov/vanity25519/field"
 )
 
 // Montgomery "curve25519" v^2 = u^3 + A*u^2 + u parameters
@@ -203,7 +204,11 @@ func (m *point) double(p *point) *point {
 func montgomeryFromEdwards(p *edwards25519.Point) *point {
 	var x, y, u, v, t field.Element
 
-	X, Y, Z, _ := p.ExtendedCoordinates()
+	ex, ey, ez, _ := p.ExtendedCoordinates()
+	X, _ := new(field.Element).SetBytes(ex.Bytes())
+	Y, _ := new(field.Element).SetBytes(ey.Bytes())
+	Z, _ := new(field.Element).SetBytes(ez.Bytes())
+
 	t.Invert(Z)
 	x.Multiply(X, &t) // x = X/Z
 	y.Multiply(Y, &t) // y = Y/Z
@@ -237,8 +242,11 @@ func edwardsFromMontgomery(m *point) *edwards25519.Point {
 	y.Subtract(&u, _1)
 	y.Multiply(&y, &t) // y = (u-1)/(u+1)
 
-	p := new(edwards25519.Point)
-	_, err := p.SetExtendedCoordinates(&x, &y, _1, t.Multiply(&x, &y))
+	ex, _ := new(edfield.Element).SetBytes(x.Bytes())
+	ey, _ := new(edfield.Element).SetBytes(y.Bytes())
+	ez, _ := new(edfield.Element).SetBytes(_1.Bytes())
+	et, _ := new(edfield.Element).SetBytes(t.Multiply(&x, &y).Bytes())
+	p, err := new(edwards25519.Point).SetExtendedCoordinates(ex, ey, ez, et)
 	if err != nil {
 		panic(err)
 	}
