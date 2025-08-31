@@ -206,6 +206,28 @@ func BenchmarkSearch(b *testing.B) {
 	}
 }
 
+func BenchmarkSearchParallel(b *testing.B) {
+	testPrefix := HasPrefixBits(decodeBase64PrefixBits("GoodLuckWithThisPrefix"))
+
+	for _, batchSize := range []int{1024, 2048, 4096, 8192, 16384} {
+		b.Run(fmt.Sprintf("%d", batchSize), func(b *testing.B) {
+			b.RunParallel(func(pb *testing.PB) {
+				ctx, cancel := context.WithCancel(context.Background())
+				defer cancel()
+
+				Search(ctx, _B.x.Bytes(), new(big.Int).SetUint64(randUint64()), batchSize, func(candidatePublicKey []byte) bool {
+					_ = testPrefix(candidatePublicKey)
+					if !pb.Next() {
+						cancel()
+					}
+					return false
+				}, nil)
+			})
+			b.ReportMetric(float64(b.N)/b.Elapsed().Seconds(), "keys/s")
+		})
+	}
+}
+
 var sink uint64
 
 func BenchmarkDoneContext(b *testing.B) {
