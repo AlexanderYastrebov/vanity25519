@@ -11,7 +11,9 @@ import (
 	"testing"
 
 	"filippo.io/edwards25519"
-	"filippo.io/edwards25519/field"
+	"github.com/AlexanderYastrebov/vanity25519/field"
+	"github.com/AlexanderYastrebov/vanity25519/internal/assert"
+	"github.com/AlexanderYastrebov/vanity25519/internal/require"
 )
 
 func TestMakeOffsets(t *testing.T) {
@@ -22,8 +24,8 @@ func TestMakeOffsets(t *testing.T) {
 		expectedEdwards := edwards25519.NewGeneratorPoint().ScalarBaseMult(scalarFromUint64(uint64(i+1) * 8))
 		expectedMontgomery := montgomeryFromEdwards(expectedEdwards)
 
-		assertEqual(t, expectedMontgomery.x.Bytes(), offsets[i].x.Bytes())
-		assertEqual(t, expectedMontgomery.y.Bytes(), offsets[i].y.Bytes())
+		assert.Equal(t, expectedMontgomery.x.Bytes(), offsets[i].x.Bytes())
+		assert.Equal(t, expectedMontgomery.y.Bytes(), offsets[i].y.Bytes())
 	}
 }
 
@@ -45,7 +47,7 @@ func TestInvert(t *testing.T) {
 			invert(a, s)
 
 			for i := range n {
-				assertEqual(t, e[i].Bytes(), a[i].Bytes())
+				assert.Equal(t, e[i].Bytes(), a[i].Bytes())
 			}
 		})
 	}
@@ -78,9 +80,9 @@ func TestAddXBatch(t *testing.T) {
 	addXBatch(p1, makeOffsets(n), dx, x)
 
 	for i := range x {
-		assertEqual(t, expectedX[i].Bytes(), x[i].Bytes())
+		assert.Equal(t, expectedX[i].Bytes(), x[i].Bytes())
 	}
-	assertEqual(t, dxInvExpectedBytes, dx[n].Bytes())
+	assert.Equal(t, dxInvExpectedBytes, dx[n].Bytes())
 }
 
 func TestSearch(t *testing.T) {
@@ -88,7 +90,7 @@ func TestSearch(t *testing.T) {
 		const k = "qkHBetbXfAxsmr0jH6Zs6Dx1ZEReO9WBZCoNREce0gE="
 
 		kb, err := base64.StdEncoding.DecodeString(k)
-		requireNoError(t, err)
+		require.NoError(t, err)
 
 		expectedOffset := big.NewInt(92950)
 
@@ -105,16 +107,16 @@ func TestSearch(t *testing.T) {
 
 		Search(ctx, kb, big.NewInt(0), 8, accept, yield)
 
-		assertEqual(t, expectedOffset, found)
+		assert.Equal(t, expectedOffset, found)
 
 		p, err := edwardsPointFromMontgomeryBytes(kb)
-		requireNoError(t, err)
+		require.NoError(t, err)
 
 		po := new(edwards25519.Point).ScalarBaseMult(scalarFromBigInt(found))
 		po.MultByCofactor(po)
 		p.Add(p, po)
 
-		assertEqual(t, "AY/yq7zukqRmMUzqqPFmtqXJdAcbmh8mn4rMgtjVnGI=", base64.StdEncoding.EncodeToString(p.BytesMontgomery()))
+		assert.Equal(t, "AY/yq7zukqRmMUzqqPFmtqXJdAcbmh8mn4rMgtjVnGI=", base64.StdEncoding.EncodeToString(p.BytesMontgomery()))
 	})
 
 	acceptAll := func(_ []byte) bool { return true }
@@ -125,14 +127,14 @@ func TestSearch(t *testing.T) {
 		const pk = "2U15Ir9CYFkGDAOtgsqWagSa+RKdXCHqjKm0kPkwm20="
 
 		skb, err := base64.StdEncoding.DecodeString(sk)
-		requireNoError(t, err)
+		require.NoError(t, err)
 
 		pkb, err := base64.StdEncoding.DecodeString(pk)
-		requireNoError(t, err)
+		require.NoError(t, err)
 
 		k, err := ecdh.X25519().NewPrivateKey(skb)
-		requireNoError(t, err)
-		assertEqual(t, k.PublicKey().Bytes(), pkb)
+		require.NoError(t, err)
+		assert.Equal(t, k.PublicKey().Bytes(), pkb)
 
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
@@ -140,11 +142,11 @@ func TestSearch(t *testing.T) {
 		i := 0
 		Search(ctx, pkb, big.NewInt(0), 8, acceptAll, func(xb []byte, offset *big.Int) {
 			kb, err := Add(skb, offset)
-			requireNoError(t, err)
+			require.NoError(t, err)
 
 			k, err := ecdh.X25519().NewPrivateKey(kb)
-			assertNoError(t, err)
-			assertEqual(t, k.PublicKey().Bytes(), xb)
+			assert.NoError(t, err)
+			assert.Equal(t, k.PublicKey().Bytes(), xb)
 
 			if i++; i == n {
 				cancel()
@@ -156,7 +158,7 @@ func TestSearch(t *testing.T) {
 		for range 100 {
 			t.Run("", func(t *testing.T) {
 				k, err := ecdh.X25519().GenerateKey(rand.Reader)
-				requireNoError(t, err)
+				require.NoError(t, err)
 				skb := k.Bytes()
 				pkb := k.PublicKey().Bytes()
 
@@ -169,11 +171,11 @@ func TestSearch(t *testing.T) {
 				i := 0
 				Search(ctx, pkb, startOffset, 8, acceptAll, func(xb []byte, offset *big.Int) {
 					kb, err := Add(skb, offset)
-					requireNoError(t, err)
+					require.NoError(t, err)
 
 					k, err = ecdh.X25519().NewPrivateKey(kb)
-					assertNoError(t, err)
-					assertEqual(t, k.PublicKey().Bytes(), xb)
+					assert.NoError(t, err)
+					assert.Equal(t, k.PublicKey().Bytes(), xb)
 
 					if i++; i == 100 {
 						cancel()
@@ -201,7 +203,29 @@ func BenchmarkSearch(b *testing.B) {
 					cancel()
 				}
 				return false
-			}, func([]byte, *big.Int) {})
+			}, nil)
+		})
+	}
+}
+
+func BenchmarkSearchParallel(b *testing.B) {
+	testPrefix := HasPrefixBits(decodeBase64PrefixBits("GoodLuckWithThisPrefix"))
+
+	for _, batchSize := range []int{1024, 2048, 4096, 8192, 16384} {
+		b.Run(fmt.Sprintf("%d", batchSize), func(b *testing.B) {
+			b.RunParallel(func(pb *testing.PB) {
+				ctx, cancel := context.WithCancel(context.Background())
+				defer cancel()
+
+				Search(ctx, _B.x.Bytes(), new(big.Int).SetUint64(randUint64()), batchSize, func(candidatePublicKey []byte) bool {
+					_ = testPrefix(candidatePublicKey)
+					if !pb.Next() {
+						cancel()
+					}
+					return false
+				}, nil)
+			})
+			b.ReportMetric(float64(b.N)/b.Elapsed().Seconds(), "keys/s")
 		})
 	}
 }

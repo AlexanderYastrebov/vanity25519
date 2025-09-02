@@ -5,33 +5,34 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/binary"
-	"reflect"
 	"strings"
 	"testing"
 
 	"filippo.io/edwards25519"
+
+	"github.com/AlexanderYastrebov/vanity25519/internal/assert"
 )
 
 func TestHasPrefixBits(t *testing.T) {
 	t.Logf("AY/: % x", "AY/") // 41 59 2f
 
-	assertTrue(t, HasPrefixBits([]byte("AY/"), 8)([]byte{0x41, 0x59, 0x2f}))
-	assertTrue(t, HasPrefixBits([]byte("AY/"), 7)([]byte{0x40, 0x59, 0x2f}))
+	assert.True(t, HasPrefixBits([]byte("AY/"), 8)([]byte{0x41, 0x59, 0x2f}))
+	assert.True(t, HasPrefixBits([]byte("AY/"), 7)([]byte{0x40, 0x59, 0x2f}))
 
 	buf := make([]byte, 32)
 	rand.Read(buf)
 	input := bytes.Clone(buf)
 
 	for i := 1; i < 256; i++ {
-		assertTrue(t, HasPrefixBits(buf, i)(input))
+		assert.True(t, HasPrefixBits(buf, i)(input))
 	}
 
 	input[0] ^= 0x01
 	for i := 1; i < 8; i++ {
-		assertTrue(t, HasPrefixBits(buf, i)(input))
+		assert.True(t, HasPrefixBits(buf, i)(input))
 	}
 	for i := 8; i < 256; i++ {
-		assertFalse(t, HasPrefixBits(buf, i)(input))
+		assert.False(t, HasPrefixBits(buf, i)(input))
 	}
 }
 
@@ -66,39 +67,4 @@ func scalarFromUint64(n uint64) *edwards25519.Scalar {
 		panic(err)
 	}
 	return xs
-}
-
-func assertTrue(t *testing.T, value bool) {
-	if !value {
-		t.Helper()
-		t.Error("Should be true")
-	}
-}
-
-func assertFalse(t *testing.T, value bool) {
-	if value {
-		t.Helper()
-		t.Error("Should be false")
-	}
-}
-
-func assertEqual(t *testing.T, expected, actual any) {
-	if !reflect.DeepEqual(expected, actual) {
-		t.Helper()
-		t.Errorf("Not equal:\nexpected: %v\n  actual: %v", expected, actual)
-	}
-}
-
-func assertNoError(t *testing.T, err error) {
-	if err != nil {
-		t.Helper()
-		t.Errorf("Received unexpected error: %+v", err)
-	}
-}
-
-func requireNoError(t *testing.T, err error) {
-	if err != nil {
-		t.Helper()
-		t.Fatalf("Received unexpected error: %+v", err)
-	}
 }
