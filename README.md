@@ -18,3 +18,4 @@ See [example_test.go](example_test.go) for usage.
 
 * [wireguard-vanity-key](https://github.com/AlexanderYastrebov/wireguard-vanity-key) — Fast WireGuard vanity key generator.
 * [age-vanity-keygen](https://github.com/AlexanderYastrebov/age-vanity-keygen) — Fast vanity age X25519 identity generator.
+* [onion-vanity-address](https://github.com/AlexanderYastrebov/onion-vanity-address) — Fast Tor Onion Service vanity address generator.
